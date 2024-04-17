@@ -1,58 +1,62 @@
 <!DOCTYPE html>
 <html lang="pt">
+    <head>
+        <meta charset="UTF-8">
+        <title>Lista de Países</title>
+        <link rel="stylesheet" href="./static/css/bootstrap.min.css">
+        <script src="./static/css/bootstrap.min.css"></script>
 
-<head>
-    <meta charset="UTF-8">
-    <title>Lista de Países</title>
-    <link rel="stylesheet" href="./static/css/bootstrap.min.css">
-    <script src="./static/css/bootstrap.min.css"></script>
+    </head>
 
-</head>
-
-<body>
-    <div class="container">
-        <main>
-            <div class="py-5 text-center">
-                
-                <h2>Previsão de salário</h2>
-                <p class="lead">O formulario abaixo deve ser corretamente preenchido para a previsão do salário.</p>
-              </div>
-            <form >
-                <div class="mb-2">
-                    <label for="countries" class="form-label">País:</label>
-                    <select name="countries" id="countries" class="form-select" required>
-                        {% for country in countries %}
-                        <option value="{{ country.name }}">{{ country.name }}</option>
-                        {% endfor %}
-                    </select>
+    <body>
+        <div class="container">
+            <main>
+                <div class="py-5 text-center">
+                    <h2>Previsão de salário</h2>
+                    <p class="lead">O formulario abaixo deve ser corretamente preenchido para a previsão do salário.</p>
                 </div>
-                <div class="mb-2">
-                    <label for="ed_levels" class="form-label">Nível de Educação:</label>
-                    <select name="ed_levels" id="ed_levels" class="form-select" required>
-                        {% for ed_level in education_levels %}
-                        <option value="{{ ed_level.name }}">{{ ed_level.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="mb-2">
-                    <label for="professions" class="form-label">Profissão:</label>
-                    <select name="professions" id="professions" class="form-select" multiple required>
-                        {% for profession in professions %}
-                        <option value="{{ profession.name }}">{{ profession.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
+                <form action={{ url_for('predict')}} method='POST'>
+                    <div class="mb-2">
+                        <label for="countries" class="form-label">País:</label>
+                        <select name="countries" id="countries" class="form-select" required>
+                            {% for country in countries %}
+                            <option value="{{ country.name }}">{{ country.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label for="ed_levels" class="form-label">Nível de Educação:</label>
+                        <select name="ed_levels" id="ed_levels" class="form-select" required>
+                            {% for ed_level in education_levels %}
+                            <option value="{{ ed_level.name }}">{{ ed_level.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label for="professions" class="form-label">Profissão:</label>
+                        <select name="professions" id="professions" class="form-select" multiple required>
+                            {% for profession in professions %}
+                            <option value="{{ profession.name }}">{{ profession.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
+                    <div class="mb-2">
+                        <label for="yearscodepro" class="form-label">Anos de Experiência:</label>
+                        <input type="text" id="yearscodepro" name="yearscodepro" class="form-control" required></input>
+                    </div>
+
+                    
+                    <button type="submit" class="btn btn-primary">Enviar</button>   
+                </form>
                 <div class="mb-2">
-                    <label for="yearscodepro" class="form-label">Anos de Experiência:</label>
-                    <input type="text" id="yearscodepro" name="yearscodepro" class="form-control" required></input>
+                    {% if prediction_text%}
+                        <div class="alert alert-primary" role="alert">
+                            Previsão: USD {{prediction_text}} [Anual]
+                        </div>
+                    {% endif %}
                 </div>
-
-                
-                <button type="submit" class="btn btn-primary">Enviar</button>   
-            </form>
-        </main>
-    </div>
-</body>
-
+            </main>
+        </div>
+    </body>
 </html>

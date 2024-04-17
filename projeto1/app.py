@@ -1,7 +1,9 @@
 import os
 import pickle
-from flask import Flask, request, render_template
+import pandas as pd
+from flask import Flask, request, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
+from sklearn.preprocessing import StandardScaler, OrdinalEncoder
 
 model = pickle.load(open("artifact/modelo_rdfr_grid.pkl", "rb"))
 columns = pickle.load(open("artifact/columns.pkl", "rb"))
@@ -51,12 +53,55 @@ def home():
     countries = Country.query.all()
     education_levels = EducationLevel.query.all()
     professions = Professions.query.all()
+    prediction_text = request.args.get("prediction_text")
     return render_template(
         "index.html",
         countries=countries,
         education_levels=education_levels,
         professions=professions,
+        prediction_text=prediction_text,
     )
+
+
+@app.route("/predict", methods=["POST"])
+def predict():
+    try:
+        data = {
+            "Country": request.form["countries"],
+            "EdLevel": request.form["ed_levels"],
+            "DevType": request.form.getlist("professions"),
+            "YearsCodePro": int(request.form["yearscodepro"]),
+        }
+    except KeyError as e:
+        return render_template(
+            "index.html", prediction_text="Entrada de dados inválida."
+        )
+
+    if any(value == "" for value in data.values()):
+        return render_template(
+            "index.html",
+            prediction_text="Verifique se todos os dados foram preenchidos.",
+        )
+
+    # transformação dos dados de entrada
+    df = pd.DataFrame([data])
+
+    df.loc[df.index, "Country"] = ord_country.transform(df[["Country"]])
+    df.loc[df.index, "EdLevel"] = ord_ed_level.transform(df[["EdLevel"]])
+
+    df_dummies = pd.get_dummies(df["DevType"].explode()).astype(int)
+    df_grouped = df_dummies.groupby(df_dummies.index).sum()
+    df = df.drop("DevType", axis=1).join(df_grouped)
+
+    colunas_faltantes = set(columns) - set(df.columns)
+    for col in colunas_faltantes:
+        df[col] = 0
+
+    df = df.reindex(columns=columns)
+    df_scaled = scaler.transform(df)
+    previsao = model.predict(df_scaled)
+
+    return redirect(url_for("home", prediction_text=round(previsao[0], 2)))
 
 
 if __name__ == "__main__":
